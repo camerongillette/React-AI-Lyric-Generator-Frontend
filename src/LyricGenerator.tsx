@@ -1,11 +1,10 @@
 // src/App.tsx
-import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import React, { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import './App.css';
-import { logGeneratedTopic, logPageView } from './utils/analytics';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
-//console.log(backendUrl); 
+console.log('Backend URL:', backendUrl);
 
 // ---- DATA TYPES
 type Topic = {
@@ -24,25 +23,20 @@ const TOPICS: Topic[] = [
      {id : 7, name :"MANIPULATION"}
 ]
 
-const SleepToken: React.FC = () => {
-  //Runs once on initial render
-  useEffect(() => {
-    logPageView(location.pathname);
-  }, []);
-
-  const [selectedTopic, setSelectedTopic] = useState<Topic>(TOPICS[0]);
+const LyricGenerator: React.FC = () => {
   const [lyrics, setLyrics] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLyrics = async () => {
+  const fetchLyrics = async (topicId: string, model: string) => {
     setLoading(true);
     setError(null);
     setLyrics('');
     try {
       const res = await axios.get(backendUrl+'/lyricgenerator/sleeptoken', {
         params: {
-          topicId: selectedTopic.id
+          topicId: topicId,
+          model: model
         }
       });
       setLyrics(res.data.lyrics);
@@ -57,18 +51,12 @@ const SleepToken: React.FC = () => {
     }
   };
 
-  const handleTopicChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const topicId = parseInt(e.target.value, 10);   
-    const selectedTopic = TOPICS.find((t) => t.id === topicId)!;
-    setSelectedTopic(selectedTopic);    
-  }
-
-  const handleSubmit = (e: FormEvent) => {
-    //Send GTM event for selectedTopic.id
-    logGeneratedTopic(selectedTopic.name);
-    
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {    
     e.preventDefault();
-    fetchLyrics();
+    const form = e.currentTarget;
+    const topicId = (form.elements.namedItem('selectedTopic') as HTMLSelectElement).value;
+    const model = (form.elements.namedItem('model') as HTMLSelectElement).value;
+    fetchLyrics(topicId, model);
   };
 
   const copyToClipboard = () => {
@@ -78,7 +66,7 @@ const SleepToken: React.FC = () => {
   return (
     <div className='main-container'>
       <img
-        src='/images/sleep_token.png'
+        src='/images/bw_logo.png'
         alt="Header"
         className="header-image"
         style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }}
@@ -101,15 +89,25 @@ const SleepToken: React.FC = () => {
             <div>
                 <label>TOPIC</label>
             </div>
-          <div>
-            <select value={selectedTopic.id} onChange={handleTopicChange}>
+            <div>
+            <select name="selectedTopic">
+              <option value="" disabled>
+              Select a topic...
+              </option>
               {TOPICS.map((topic) => (
-                <option key={topic.id} value={topic.id}>
-                  {topic.name}
-                </option>
+              <option key={topic.id} value={topic.id}>
+                {topic.name}
+              </option>
               ))}
             </select>
-          </div>
+            <select defaultValue="" name="model">
+              <option value="" disabled>
+              SELECT A MODEL
+              </option>
+              <option value="OpenAi">OPENAI</option>
+              <option value="ollama">OLLAMA</option>
+            </select>
+            </div>
           <div>
             <button type="submit" disabled={loading}>
               {loading ? 'Generating...' : 'GENERATE CHORUS'}
@@ -124,4 +122,4 @@ const SleepToken: React.FC = () => {
   );
 };
 
-export default SleepToken;
+export default LyricGenerator;
