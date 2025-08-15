@@ -1,12 +1,10 @@
-// src/App.tsx
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import axios from 'axios';
 import './App.css';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 console.log('Backend URL:', backendUrl);
 
-// ---- DATA TYPES
 type Topic = {
     id: number; 
     name: string;
@@ -87,12 +85,8 @@ const LyricGenerator: React.FC = () => {
       <div className="form-container">
         <form onSubmit={handleSubmit}>
             <div>
-                <label>TOPIC</label>
-            </div>
-            <div>
             <select name="selectedTopic">
               <option value="" disabled>
-              Select a topic...
               </option>
               {TOPICS.map((topic) => (
               <option key={topic.id} value={topic.id}>
@@ -105,7 +99,7 @@ const LyricGenerator: React.FC = () => {
               SELECT A MODEL
               </option>
               <option value="OpenAi">OPENAI</option>
-              <option value="ollama">OLLAMA</option>
+              <option value="ollama">LLAMA</option>
             </select>
             </div>
           <div>
